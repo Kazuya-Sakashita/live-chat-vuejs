@@ -14,7 +14,7 @@
 import axios from 'axios'
 
 export default {
-  emits: ['redirectToChatRoom'],
+  emits: ['redirectToLiveChatroom'],
   data () {
     return {
       email: '',
@@ -37,7 +37,7 @@ export default {
         }
 
         if (!this.error) {
-          this.$emit('redirectToChatRoom')
+          this.$emit('redirectToLiveChatroom')
         }
 
         console.log({ res })
