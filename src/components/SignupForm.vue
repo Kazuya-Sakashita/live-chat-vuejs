@@ -3,9 +3,9 @@
     <h2>アカウントを登録</h2>
     <form @submit.prevent="signUp">
       <input type="text" required placeholder="名前" v-model="name">
-      <input type="email" required placeholder="メールアドレス" v-model="email">
-      <input type="password" required placeholder="パスワード" v-model="password">
-      <input type="password" required placeholder="パスワード（確認用）" v-model="passwordConfirmation">
+      <input type="email" required placeholder="メールアドレス" v-model="email" autocomplete="email">
+      <input type="password" required placeholder="パスワード" v-model="password" autocomplete="current-password">
+      <input type="password" required placeholder="パスワード（確認用）" v-model="passwordConfirmation" autocomplete="passwordConfirmation">
       <div class="error">{{ error }}</div>
       <button>登録する</button>
     </form>
@@ -42,10 +42,12 @@ export default {
         }
 
         if (!this.error) {
+          window.localStorage.setItem('access-token', res.headers['access-token'])
+          window.localStorage.setItem('client', res.headers.client)
+          window.localStorage.setItem('uid', res.headers.uid)
+          window.localStorage.setItem('name', res.data.data.name)
           this.$emit('redirectToLiveChatroom')
         }
-
-        console.log({ res })
 
         return res
       } catch (error) {

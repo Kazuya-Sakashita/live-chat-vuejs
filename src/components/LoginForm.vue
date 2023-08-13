@@ -2,8 +2,8 @@
   <div>
     <h2>ログイン</h2>
      <form @submit.prevent="login">
-      <input type="email" required placeholder="メールアドレス" v-model="email">
-      <input type="password" required placeholder="パスワード" v-model="password">
+      <input type="email" required placeholder="メールアドレス" v-model="email" autocomplete="email">
+      <input type="password" required placeholder="パスワード" v-model="password" autocomplete="current-password">
       <div class="error">{{ error }}</div>
       <button>ログインする</button>
     </form>
@@ -37,10 +37,12 @@ export default {
         }
 
         if (!this.error) {
+          window.localStorage.setItem('access-token', res.headers['access-token'])
+          window.localStorage.setItem('client', res.headers.client)
+          window.localStorage.setItem('uid', res.headers.uid)
+          window.localStorage.setItem('name', res.data.data.name)
           this.$emit('redirectToLiveChatroom')
         }
-
-        console.log({ res })
 
         return res
       } catch (error) {
