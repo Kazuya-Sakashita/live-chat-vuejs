@@ -4,8 +4,20 @@
       <ul v-for="message in messages" :key="message.id">
         <li :class="{ received: message.email !== uid, sent: message.email === uid }">
           <span class="name">{{ message.name }}</span>
-          <span class="message">{{ message.content }}</span>
-          <span class="created-at">{{ message.created_at }}</span>
+          <div class="message" @dblclick="createLike(message.id, message.email)">
+            {{ message.content }}
+            <div v-if="message.likes.length" class="heart-container">
+              <font-awesome-icon icon="heart" class="heart" />
+              <span class="heart-count">{{ message.likes.length }}</span>
+            </div>
+          </div>
+          <div class="created-at-container">
+            <span class="created-at">{{ message.created_at }}</span>
+            <!-- エラーメッセージ表示部分 -->
+            <div v-if="errorMessages[message.id]" class="error-message">
+              {{ errorMessages[message.id] }}
+            </div>
+          </div>
         </li>
       </ul>
     </div>
@@ -13,13 +25,44 @@
 </template>
 
 <script>
+import axios from 'axios' 
+
 export default {
+  emits: ['connectCable'],
   props: ['messages'],
   data () {
     return {
-      uid: localStorage.getItem('uid')
+      uid: localStorage.getItem('uid'),
+      errorMessages: {} // メッセージIDをキーとするエラーメッセージのオブジェクト
     }
   },
+  methods: {
+    async createLike (messageId, messageEmail) {
+    // 自分のメッセージに対していいねをすることをチェック
+    if (messageEmail === this.uid) {
+      this.errorMessages[messageId] = '自分のメッセージにはいいねできません'; // ここを変更
+      return;
+    }
+      try {
+        const res = await axios.post(`http://localhost:3000/messages/${messageId}/likes`, {},
+          {
+            headers: {
+              uid: this.uid,
+              "access-token": window.localStorage.getItem('access-token'),
+              client: window.localStorage.getItem('client')
+            }
+          })
+
+        if (!res) {
+          throw new Error('いいねできませんでした')
+        }
+        this.$emit('connectCable')
+      } catch (error) {
+        this.$set(this.errorMessages, messageId, 'いいねできませんでした'); // エラーメッセージをセット
+        console.log(error)
+      }
+    }
+  }
 }
 </script>
 
@@ -78,4 +121,44 @@ export default {
     max-height: 400px;
     overflow: auto;
   }
+    .message {
+    position: relative;
+  }
+
+  .heart-container {
+    background: white;
+    position: absolute;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-radius: 30px;
+    min-width: 25px;
+    border-style: solid;
+    border-width: 1px;
+    border-color: rgb(245, 245, 245);
+    padding: 1px 2px;
+    z-index: 2;
+    bottom: -7px;
+    right: 0px;
+    font-size: 9px;
+  }
+  .heart {
+    color: rgb(236, 29, 29);
+  }
+  .heart-count {
+    color: rgb(20, 19, 19);
+  }
+
+.received .message::selection {
+    background: #eee;
+  }
+
+  .sent .message::selection {
+    background: #677bb4;
+  }
+
+.error-message {
+  color: red;
+  font-size: 10px; /* 必要に応じてサイズを調整 */
+}
 </style>
