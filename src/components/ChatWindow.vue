@@ -12,7 +12,7 @@
             </div>
           </div>
           <div class="created-at-container">
-            <span class="created-at">{{ message.created_at }}</span>
+            <span class="created-at">{{ message.created_at }}前</span>
             <!-- エラーメッセージ表示部分 0．5秒間表示-->
             <transition name="fade" mode="out-in">
               <div v-if="errorMessages[message.id]" class="error-message">
