@@ -13,10 +13,12 @@
           </div>
           <div class="created-at-container">
             <span class="created-at">{{ message.created_at }}</span>
-            <!-- エラーメッセージ表示部分 -->
-            <div v-if="errorMessages[message.id]" class="error-message">
-              {{ errorMessages[message.id] }}
-            </div>
+            <!-- エラーメッセージ表示部分 0．5秒間表示-->
+            <transition name="fade" mode="out-in">
+              <div v-if="errorMessages[message.id]" class="error-message">
+                {{ errorMessages[message.id] }}
+              </div>
+            </transition>
           </div>
         </li>
       </ul>
@@ -25,24 +27,29 @@
 </template>
 
 <script>
-import axios from 'axios' 
+import axios from 'axios';
+import { reactive } from 'vue';
 
 export default {
   emits: ['connectCable'],
   props: ['messages'],
-  data () {
+  data() {
     return {
       uid: localStorage.getItem('uid'),
-      errorMessages: {} // メッセージIDをキーとするエラーメッセージのオブジェクト
+      errorMessages: reactive({}) // reactiveでエラーメッセージのオブジェクトをラップ
     }
   },
   methods: {
-    async createLike (messageId, messageEmail) {
-    // 自分のメッセージに対していいねをすることをチェック
-    if (messageEmail === this.uid) {
-      this.errorMessages[messageId] = '自分のメッセージにはいいねできません'; // ここを変更
-      return;
-    }
+    async createLike(messageId, messageEmail) {
+      // 自分のメッセージに対していいねをすることをチェック
+      if (messageEmail === this.uid) {
+        this.errorMessages[messageId] = '自分のメッセージにはいいねできません';
+        setTimeout(() => {
+          this.errorMessages[messageId] = null  // エラーメッセージを消す
+        }, 500)
+        return
+      }
+
       try {
         const res = await axios.post(`http://localhost:3000/messages/${messageId}/likes`, {},
           {
@@ -58,7 +65,10 @@ export default {
         }
         this.$emit('connectCable')
       } catch (error) {
-        this.$set(this.errorMessages, messageId, 'いいねできませんでした'); // エラーメッセージをセット
+        this.errorMessages[messageId] = 'いいねできませんでした'; // エラーメッセージをセット
+        setTimeout(() => {
+          this.errorMessages[messageId] = null; // エラーメッセージを消す
+        }, 500);
         console.log(error)
       }
     }
